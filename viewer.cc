@@ -1,6 +1,7 @@
 #include <QtGui/QKeyEvent>
 
 #include "bezier.hh"
+#include "ksurf.hh"
 #include "mesh.hh"
 #include "viewer.hh"
 
@@ -66,7 +67,7 @@ bool Viewer::open(std::string filename) {
   if (filename.ends_with(".bzr"))
     surface = std::make_shared<Bezier>(filename);
   else
-    surface = std::make_shared<Mesh>(filename);
+    surface = std::make_shared<KSurf>(filename);
   if (!surface->valid())
     return false;
   objects.push_back(surface);

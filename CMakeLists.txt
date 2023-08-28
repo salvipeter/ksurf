@@ -6,6 +6,11 @@ option(WITH_JET_FITTING "Use jet fitting for normals" OFF)
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 set(OpenGL_GL_PREFERENCE LEGACY)
 
+find_library(GEOM_LIBRARIES geom)
+find_path(GEOM_INCLUDE_DIRS geometry.hh)
+find_library(TRANSFINITE_LIBRARIES transfinite)
+find_path(TRANSFINITE_INCLUDE_DIRS surface.hh)
+
 if(WITH_JET_FITTING)
   find_package(Eigen3 3.3 REQUIRED NO_MODULE)
   find_package(CGAL REQUIRED NO_MODULE)
@@ -40,6 +45,8 @@ endif()
 
 include_directories(
   .
+  ${GEOM_INCLUDE_DIRS}
+  ${TRANSFINITE_INCLUDE_DIRS}
   ${CGAL_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
   ${OPENMESH_INCLUDE_DIR}
@@ -53,6 +60,8 @@ add_executable(geo-framework WIN32
   ${geo_HEADERS_MOC}
   textures.qrc
   bezier.cc
+  kcurve.cc
+  ksurf.cc
   main.cc
   mesh.cc
   object.cc
@@ -74,6 +83,8 @@ if(UNIX)
 endif(UNIX)
 
 target_link_libraries(geo-framework PUBLIC
+  ${GEOM_LIBRARIES}
+  ${TRANSFINITE_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${OPENMESH_LIBRARIES}
   Qt6::Core
