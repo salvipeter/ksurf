@@ -53,7 +53,7 @@ KappaCurve::KappaCurve(const Point3D &p1, const Vector3D &n1,
 
     // Bisection to find best x value in (0,1)
     double xl = epsilon, xh = 1 - epsilon, xm = 0;
-    size_t iterations = 20;
+    size_t iterations = 30;
     for (size_t i = 0; i < iterations; ++i) {
         auto xm_old = xm;
         xm = (xl + xh) / 2;
@@ -67,6 +67,7 @@ KappaCurve::KappaCurve(const Point3D &p1, const Vector3D &n1,
         else
             break;
     } 
+    err(xm);
 
     // Set up private members
     C1 = BSCurve({cpts[0], cpts[1], cpts[2]});
