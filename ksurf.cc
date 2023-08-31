@@ -1,7 +1,12 @@
 #include <OpenMesh/Core/IO/MeshIO.hh>
 
-//#include <surface-generalized-coons.hh>
+#include <surface-c0coons.hh>
+#include <surface-corner-based.hh>
+#include <surface-composite-ribbon.hh>
+#include <surface-generalized-coons.hh>
 #include <surface-midpoint.hh>
+#include <surface-midpoint-coons.hh>
+#include <surface-side-based.hh>
 
 #include "kcurve.hh"
 #include "ksurf.hh"
@@ -96,8 +101,13 @@ std::unique_ptr<Transfinite::Surface> KSurf::createPatch(Cage::FaceHandle f) con
     for (auto e : cage.fe_range(f))
         curves.push_back(boundaries.at(e));
     std::unique_ptr<Transfinite::Surface> patch =
+        //std::make_unique<Transfinite::SurfaceC0Coons>();
+        std::make_unique<Transfinite::SurfaceCornerBased>();
+        //std::make_unique<Transfinite::SurfaceCompositeRibbon>();
         //std::make_unique<Transfinite::SurfaceGeneralizedCoons>();
-        std::make_unique<Transfinite::SurfaceMidpoint>();
+        //std::make_unique<Transfinite::SurfaceMidpoint>();
+        //std::make_unique<Transfinite::SurfaceMidpointCoons>();
+        //std::make_unique<Transfinite::SurfaceSideBased>();
     patch->setCurves(curves);
     patch->setupLoop();
     patch->update();

@@ -14,9 +14,7 @@ static double curvature(const Point3D &a, const Point3D &b, const Point3D &c) {
 KappaCurve::KappaCurve(const Point3D &p1, const Vector3D &n1,
                        const Point3D &p2, const Vector3D &n2) {
     // Compute tangent directions in a common plane
-    auto b = n1 ^ n2;
-    if (b.norm() < epsilon)
-        b = (p2 - p1).normalize() ^ n1;
+    auto b = (p2 - p1).normalize() ^ (n1 + n2);
     auto t1 = n1 ^ b, t2 = n2 ^ b;
     if ((p2 - p1) * t1 < 0)
         t1 *= -1;
