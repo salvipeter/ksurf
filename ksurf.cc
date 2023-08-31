@@ -1,6 +1,8 @@
+#include <fstream>
 #include <OpenMesh/Core/IO/MeshIO.hh>
 
-#include <surface-generalized-coons.hh>
+//#include <surface-generalized-coons.hh>
+#include <surface-midpoint.hh>
 
 #include "kcurve.hh"
 #include "ksurf.hh"
@@ -74,6 +76,11 @@ static std::shared_ptr<Transfinite::Curve> createCurve(
 #endif
 }
 
+//#define CURVE_OUTPUT
+#ifdef CURVE_OUTPUT
+Transfinite::CurveVector all_curves;
+#endif
+
 std::unique_ptr<Transfinite::Surface> KSurf::createPatch(Cage::FaceHandle f) const {
     Transfinite::CurveVector curves;
     for (auto he : cage.fh_range(f)) {
@@ -82,8 +89,12 @@ std::unique_ptr<Transfinite::Surface> KSurf::createPatch(Cage::FaceHandle f) con
         auto n1 = cage.normal(v1), n2 = cage.normal(v2);
         curves.push_back(createCurve(p1, n1, p2, n2));
     } 
+#ifdef CURVE_OUTPUT
+    all_curves.insert(all_curves.end(), curves.begin(), curves.end());
+#endif
     std::unique_ptr<Transfinite::Surface> patch =
-        std::make_unique<Transfinite::SurfaceGeneralizedCoons>();
+        //std::make_unique<Transfinite::SurfaceGeneralizedCoons>();
+        std::make_unique<Transfinite::SurfaceMidpoint>();
     patch->setCurves(curves);
     patch->setupLoop();
     patch->update();
@@ -95,10 +106,26 @@ void KSurf::updateBaseMesh() {
     double tolerance = 1e-5;
     Transfinite::TriMesh m;
     mesh.clear();
+#ifdef CURVE_OUTPUT
+    all_curves.clear();
+#endif
     for (auto f : cage.faces()) {
         auto patch = createPatch(f);
         m.insert(patch->eval(resolution), tolerance);
     }
+#ifdef CURVE_OUTPUT
+    std::ofstream f("/tmp/curves.obj");
+    for (size_t i = 0; i < all_curves.size(); ++i) {
+        for (size_t j = 0; j < 100; ++j) {
+            double u = j / 99.0;
+            f << "v " << all_curves[i]->eval(u) << std::endl;
+        }
+        f << 'l';
+        for (size_t j = 0; j < 100; ++j)
+            f << ' ' << i * 100 + j + 1;
+        f << std::endl;
+    }
+#endif
     std::vector<BaseMesh::VertexHandle> handles;
     for (const auto &p : m.points())
         handles.push_back(mesh.add_vertex({p[0], p[1], p[2]}));
