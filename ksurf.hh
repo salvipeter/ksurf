@@ -4,7 +4,7 @@
 
 #include <OpenMesh/Core/Mesh/PolyMesh_ArrayKernelT.hh>
 
-namespace Transfinite { class Surface; }
+namespace Transfinite { class Curve; class Surface; }
 
 class KSurf : public Object {
 public:
@@ -23,6 +23,7 @@ private:
     };
     using Cage = OpenMesh::PolyMesh_ArrayKernelT<CageTraits>;
     std::unique_ptr<Transfinite::Surface> createPatch(Cage::FaceHandle f) const;
+    std::map<Cage::EdgeHandle, std::shared_ptr<Transfinite::Curve>> boundaries;
     Cage cage;
 };
 

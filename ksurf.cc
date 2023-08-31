@@ -1,4 +1,3 @@
-#include <fstream>
 #include <OpenMesh/Core/IO/MeshIO.hh>
 
 //#include <surface-generalized-coons.hh>
@@ -16,6 +15,22 @@ KSurf::~KSurf() {
 
 void KSurf::draw(const Visualization &vis) const {
     Object::draw(vis);
+    if (vis.show_boundaries) {
+        size_t resolution = 100;
+        glDisable(GL_LIGHTING);
+        glLineWidth(3.0);
+        glColor3d(0.0, 1.0, 1.0);
+        for (auto &[e,b] : boundaries) {
+            glBegin(GL_LINE_STRIP);
+            for (size_t j = 0; j < resolution; ++j) {
+                double u = (double)j / (resolution - 1);
+                auto p = b->eval(u);
+                glVertex3dv(p.data());
+            }
+            glEnd();
+        }
+        glEnable(GL_LIGHTING);
+    }
     if (vis.show_control_points) {
         glDisable(GL_LIGHTING);
         glLineWidth(3.0);
@@ -76,22 +91,10 @@ static std::shared_ptr<Transfinite::Curve> createCurve(
 #endif
 }
 
-//#define CURVE_OUTPUT
-#ifdef CURVE_OUTPUT
-Transfinite::CurveVector all_curves;
-#endif
-
 std::unique_ptr<Transfinite::Surface> KSurf::createPatch(Cage::FaceHandle f) const {
     Transfinite::CurveVector curves;
-    for (auto he : cage.fh_range(f)) {
-        auto v1 = he.from(), v2 = he.to();
-        auto p1 = cage.point(v1), p2 = cage.point(v2);
-        auto n1 = cage.normal(v1), n2 = cage.normal(v2);
-        curves.push_back(createCurve(p1, n1, p2, n2));
-    } 
-#ifdef CURVE_OUTPUT
-    all_curves.insert(all_curves.end(), curves.begin(), curves.end());
-#endif
+    for (auto e : cage.fe_range(f))
+        curves.push_back(boundaries.at(e));
     std::unique_ptr<Transfinite::Surface> patch =
         //std::make_unique<Transfinite::SurfaceGeneralizedCoons>();
         std::make_unique<Transfinite::SurfaceMidpoint>();
@@ -104,28 +107,22 @@ std::unique_ptr<Transfinite::Surface> KSurf::createPatch(Cage::FaceHandle f) con
 void KSurf::updateBaseMesh() {
     size_t resolution = 15;
     double tolerance = 1e-5;
+    // Compute boundaries
+    boundaries.clear();
+    for (auto e : cage.edges()) {
+        auto v1 = e.v0(), v2 = e.v1();
+        auto p1 = cage.point(v1), p2 = cage.point(v2);
+        auto n1 = cage.normal(v1), n2 = cage.normal(v2);
+        boundaries[e] = createCurve(p1, n1, p2, n2);
+    }
+    // Create triangulation
     Transfinite::TriMesh m;
-    mesh.clear();
-#ifdef CURVE_OUTPUT
-    all_curves.clear();
-#endif
     for (auto f : cage.faces()) {
         auto patch = createPatch(f);
         m.insert(patch->eval(resolution), tolerance);
     }
-#ifdef CURVE_OUTPUT
-    std::ofstream f("/tmp/curves.obj");
-    for (size_t i = 0; i < all_curves.size(); ++i) {
-        for (size_t j = 0; j < 100; ++j) {
-            double u = j / 99.0;
-            f << "v " << all_curves[i]->eval(u) << std::endl;
-        }
-        f << 'l';
-        for (size_t j = 0; j < 100; ++j)
-            f << ' ' << i * 100 + j + 1;
-        f << std::endl;
-    }
-#endif
+    // Create OpenMesh mesh
+    mesh.clear();
     std::vector<BaseMesh::VertexHandle> handles;
     for (const auto &p : m.points())
         handles.push_back(mesh.add_vertex({p[0], p[1], p[2]}));

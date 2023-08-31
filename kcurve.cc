@@ -52,7 +52,7 @@ KappaCurve::KappaCurve(const Point3D &p1, const Vector3D &n1,
     }; 
 
     // Bisection to find best x value in (0,1)
-    double xl = epsilon, xh = 1 - epsilon, xm = 0;
+    double xl = epsilon, xh = 1 - epsilon, xm = xl;
     size_t iterations = 30;
     for (size_t i = 0; i < iterations; ++i) {
         auto xm_old = xm;

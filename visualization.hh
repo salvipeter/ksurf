@@ -19,7 +19,7 @@ struct Visualization {
 
   // Flags
   VisType type;
-  bool show_control_points, show_solid, show_wireframe;
+  bool show_boundaries, show_control_points, show_solid, show_wireframe;
 
   // Mean curvature
   double mean_min, mean_max, cutoff_ratio;

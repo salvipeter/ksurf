@@ -241,6 +241,10 @@ void Viewer::keyPressEvent(QKeyEvent *e) {
       vis.current_isophote_texture = vis.environment_texture;
       update();
       break;
+    case Qt::Key_B:
+      vis.show_boundaries = !vis.show_boundaries;
+      update();
+      break;
     case Qt::Key_C:
       vis.show_control_points = !vis.show_control_points;
       update();
@@ -346,6 +350,7 @@ QString Viewer::helpString() const {
                "<li>&nbsp;*: Set slicing direction to view</li></ul></li>"
                "<li>&nbsp;I: Set isophote line map</li>"
                "<li>&nbsp;E: Set environment texture</li>"
+               "<li>&nbsp;B: Toggle boundary curve visualization</li>"
                "<li>&nbsp;C: Toggle control polygon visualization</li>"
                "<li>&nbsp;S: Toggle solid (filled polygon) visualization</li>"
                "<li>&nbsp;W: Toggle wireframe visualization</li>"
